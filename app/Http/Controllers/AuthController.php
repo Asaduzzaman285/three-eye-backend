@@ -191,9 +191,9 @@ class AuthController extends Controller
         Auth::user()->token()->revoke();
 
         OauthAccessToken::where('user_id', Auth::user()->id)
-                            ->update([
-                                'revoked' => 1
-                            ]);
+            ->update([
+                'revoked' => 1
+            ]);
 
         return $this->set_response(null, 200, 'success', ['User Logged Out!']);
     }
@@ -222,26 +222,29 @@ class AuthController extends Controller
 
     public function profileUpdate(Request $request)
     {
-         // prerequisite validation
-        $validator = Validator::make($request->all(), [
+        // prerequisite validation
+        $validator = Validator::make(
+            $request->all(),
+            [
                 // 'id' => 'required|numeric|exists:users,id',
                 'email' => 'required|email|max:255|unique:users,email,' . auth()->user()->id,
                 'current_password' => [
-                                        'nullable',
-                                        'string',
-                                        'min:8',             // must be at least 8 characters in length
+                    'nullable',
+                    'required_with:new_password',
+                    'string',
+                    'min:8',
                 ],
                 'new_password' => [
-                                    'required_with:current_password',
-                                    'different:current_password',
-                                    'string',
-                                    'min:8',             // must be at least 8 characters in length
-                                    'regex:/[a-z]/',      // must contain at least one lowercase letter
-                                    'regex:/[A-Z]/',      // must contain at least one uppercase letter
-                                    'regex:/[0-9]/',      // must contain at least one digit
-                                    'regex:/[@$!%*#?&]/', // must contain a special character
+                    'nullable',
+                    'different:current_password',
+                    'string',
+                    'min:8',
+                    'regex:/[a-z]/',
+                    'regex:/[A-Z]/',
+                    'regex:/[0-9]/',
+                    'regex:/[@$!%*#?&]/',
                 ],
-                'new_confirm_password' => 'required_with:new_password|same:new_password|string|min:8',
+                'new_confirm_password' => 'nullable|required_with:new_password|same:new_password|string|min:8',
             ],
             [
                 'new_password.regex' => "New password must contain at least one upper case, lower case letter and one number and one special character."
@@ -254,19 +257,19 @@ class AuthController extends Controller
 
         DB::beginTransaction();
         try {
-            User::find(auth()->user()->id)->update($request->only([ 'name', 'email' ]));
+            User::find(auth()->user()->id)->update($request->only(['name', 'email']));
 
-            if ($request->current_password!=null) {
+            if ($request->filled('new_password')) {
                 $this->profileChangePassword($request);
             }
 
             DB::commit();
-            return $this->set_response(null,  200, 'success', ['Profile successfully updated!']);
+            return $this->set_response(null, 200, 'success', ['Profile successfully updated!']);
         } catch (\Exception $e) {
             DB::rollback();
             $logMessage = formatCommonErrorLogMessage($e);
             writeToLog($logMessage, 'error');
-            return $this->set_response(null,  400,'error', [$e->getMessage()]);
+            return $this->set_response(null, 400, 'error', [$e->getMessage()]);
         }
     }
 
@@ -286,10 +289,10 @@ class AuthController extends Controller
 
         if (Hash::check($current_password, $existing_password)) {
             User::find($user->id)->update(
-                    [
-                        'password' => bcrypt($request->new_password)
-                    ]
-                );
+                [
+                    'password' => bcrypt($request->new_password)
+                ]
+            );
         } else {
             throw new Exception("Invalid current password given!");
         }
@@ -333,7 +336,7 @@ class AuthController extends Controller
             return $this->set_response(null, 422, 'error', ['Invalid current password given!']);
         }
 
-        return $this->set_response(null,  200, 'success', ['Password successfully changed!']);
+        return $this->set_response(null, 200, 'success', ['Password successfully changed!']);
     }
 
 
