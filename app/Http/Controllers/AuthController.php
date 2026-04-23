@@ -225,6 +225,7 @@ class AuthController extends Controller
          // prerequisite validation
         $validator = Validator::make($request->all(), [
                 // 'id' => 'required|numeric|exists:users,id',
+                'email' => 'required|email|max:255|unique:users,email,' . auth()->user()->id,
                 'current_password' => [
                                         'nullable',
                                         'string',
@@ -253,7 +254,7 @@ class AuthController extends Controller
 
         DB::beginTransaction();
         try {
-            User::find(auth()->user()->id)->update($request->only([ 'name' ]));
+            User::find(auth()->user()->id)->update($request->only([ 'name', 'email' ]));
 
             if ($request->current_password!=null) {
                 $this->profileChangePassword($request);
@@ -286,8 +287,7 @@ class AuthController extends Controller
         if (Hash::check($current_password, $existing_password)) {
             User::find($user->id)->update(
                     [
-                        'password' => bcrypt($request->new_password),
-                        'force_password' => 0
+                        'password' => bcrypt($request->new_password)
                     ]
                 );
         } else {
