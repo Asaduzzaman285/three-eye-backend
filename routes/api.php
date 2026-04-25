@@ -11,6 +11,19 @@ use App\Http\Controllers\UsersController;
 use App\Http\Controllers\CommonController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\AuditLogController;
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\RSAController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BankController;
+use App\Http\Controllers\ListController;
+use App\Http\Controllers\TestController;
+use App\Http\Controllers\UsersController;
+use App\Http\Controllers\CommonController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\MFSTypeController;
 use App\Http\Controllers\PortalRoleController;
 use App\Http\Controllers\ApplicationController;
@@ -18,6 +31,7 @@ use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\CompanyInfoController;
 use App\Http\Controllers\PaymentMethodController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\JobApplicationController;
 // -----------------------
 // Banks CRUD
 // -----------------------
@@ -223,6 +237,7 @@ Route::group([
 Route::group(['prefix' => 'v1/public/portfolio'], function() {
     Route::get('/heroes', [\App\Http\Controllers\HeroController::class, 'index']);
     Route::get('/jobs', [\App\Http\Controllers\JobController::class, 'index']);
+    Route::post('/apply', [JobApplicationController::class, 'store']);
 });
 
 Route::group(['prefix' => 'v1/admin/portfolio', 'middleware' => ['auth:api', 'permission:manage-portfolio']], function() {
@@ -232,6 +247,11 @@ Route::group(['prefix' => 'v1/admin/portfolio', 'middleware' => ['auth:api', 'pe
     Route::post('/jobs', [\App\Http\Controllers\JobController::class, 'store']);
     Route::put('/jobs/{id}', [\App\Http\Controllers\JobController::class, 'update']);
     Route::delete('/jobs/{id}', [\App\Http\Controllers\JobController::class, 'destroy']);
+    
+    // Job Applications Management
+    Route::get('/job-applications', [JobApplicationController::class, 'index']);
+    Route::put('/job-applications/{id}/status', [JobApplicationController::class, 'updateStatus']);
+    Route::delete('/job-applications/{id}', [JobApplicationController::class, 'destroy']);
 });
 
 // Product Categories Public
